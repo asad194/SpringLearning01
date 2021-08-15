@@ -21,9 +21,19 @@ import com.example.form.GroupOrder;
 import com.example.form.SignupForm;
 
 import lombok.extern.slf4j.Slf4j;
-
+/***
+ * ユーザー登録を押された時に、どの処理呼んで画面に何を出すか伝えるのが役割。橋渡し役。
+ * @author asad
+ *
+ */
 @Controller
+/*ユーザーが
+http://localhost:8080/user
+をリクエストした時に、
+このコントローラを実行するようにマッピングしている
+*/
 @RequestMapping("/user")
+//Simple Logging Facade For Java。色々なロギングシステムからどれを使えばいいか？　という選択を肩代わりしてくれる。
 @Slf4j
 public class SignupController {
 
@@ -33,11 +43,27 @@ public class SignupController {
 	@Autowired
 	private UserService userService;
 
+	// JavaConfigでBean登録したからAutowired出来る。
 	@Autowired
 	private ModelMapper modelMapper;
 
 	/** ユーザー登録画面を表示 */
+	/*/signupとGETメソッドのHTTPリクエストが来たら、
+このメソッドを実行する。そしてこのメソッドは取得処理をするもの、と示している。*/
 	@GetMapping("/signup")
+	/* ModelAttributeについて
+	 * 付与したクラスのインスタンスを、
+	 	自動でModelに登録する。
+
+		以下のコードを自動で書いてくれるイメージ
+		model.addAttribute("signupForm", form);
+
+		クラス名の先頭を小文字にした文字列がModelのキーに登録される。
+
+		！！！！
+		※Modelにインスタンスを登録することで、画面にインスタンスを渡せる
+	*/
+	//Model クラス を 使う こと で、 別 の 画面 に 値 を 渡す こと が でき ます。 Model クラス の addAttribute メソッド に キー 名 と 値 を 指定 し ます。
 	public String getSignup(Model model, Locale locale, @ModelAttribute SignupForm form) {
 		//性別を取得
 		Map<String, Integer> genderMap = userApplicaitonService.getGenderMap(locale);
@@ -47,6 +73,21 @@ public class SignupController {
 	}
 
 	/** ユーザー登録処理 */
+	/**
+	 * 8/15読解内容
+	 * ユーザーが登録画面で入力した内容がformに入っていて
+		MUserとフィールド名が同一なのでmapメソッドで変換している。
+
+		その後、UserService#signupがmapper#insertOneを呼んでおり、
+		UserMapper.xmlでmapperタグによりinsertOneがマッピングされているので、
+		UserMapper.xmlのinsertOneのSQlが実行されて、
+		ユーザーが入力したformがDBへ登録される。
+	 * @param model
+	 * @param locale
+	 * @param form
+	 * @param bindingResult
+	 * @return
+	 */
 	@PostMapping("/signup")
 	public String postSignUp(Model model, Locale locale, @ModelAttribute @Validated(GroupOrder.class) SignupForm form, BindingResult bindingResult) {
 		//入力チェック結果
@@ -57,6 +98,7 @@ public class SignupController {
 		log.info(form.toString());
 
 		// formをMUserクラスに変換
+		// ModelMapperのmapメソッドを使えばフィールドの内容を簡単にコピーできる。
 		MUser user = modelMapper.map(form, MUser.class);
 
 		// ユーザー登録
