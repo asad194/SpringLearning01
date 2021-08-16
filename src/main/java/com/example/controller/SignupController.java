@@ -22,7 +22,7 @@ import com.example.form.SignupForm;
 
 import lombok.extern.slf4j.Slf4j;
 /***
- * ユーザー登録を押された時に、どの処理呼んで画面に何を出すか伝えるのが役割。橋渡し役。
+ * ユーザー登録を押された時に、どの処理呼んで画面に何を出すか伝えるのが役割。橋渡し役。ka
  * @author asad
  *
  */
