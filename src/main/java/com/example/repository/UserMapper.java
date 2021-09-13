@@ -19,4 +19,7 @@ public interface UserMapper {
 	 *  UserMapper.xmlのselectタグでfindManyを指定しているので、このメソッドを呼び出すとUserMapper.xmlの該当SQLが実行される。*/
 	public List<MUser> findMany();
 
+	/** ユーザー取得(1件) */
+	public MUser findOne(String userId);
+
 }
