@@ -5,6 +5,7 @@
 <mapper namespace="com.example.repository.UserMapper">
 
 <!-- マッピング定義(ユーザー) -->
+<!-- 下の方で、UserMapperクラスのメソッドが呼び出された時のそれぞれのSQL内容を定義しているが、resultMapではそれによって得られたデータをどうJavaへ格納するかを定義している。 -->
 <resultMap type="com.example.domain.user.model.MUser" id="user">
 	<id column="user_id" property="userId" />
 	<result column="password" property="password" />
@@ -14,6 +15,21 @@
 	<result column="gender" property="gender" />
 	<result column="department_id" property="departmentId" />
 	<result column="role" property="role" />
+	<association property="department" resultMap="department" />
+	<collection property="salaryList" resultMap="salary" columnPrefix="salary_" />
+</resultMap>
+
+<!-- マッピング定義(部署) -->
+<resultMap type="com.example.domain.user.model.Department" id="department">
+	<id column="department_id" property="departmentId" />
+	<result column="department_name" property="departmentName"/>
+</resultMap>
+
+<!-- マッピング定義(給料) -->
+<resultMap type="com.example.domain.user.model.Salary" id="salary">
+	<id column="user_id" property="userId" />
+	<id column="year_month" property="yearMonth" />
+	<result column="salary" property="salary" />
 </resultMap>
 
 	<!-- ユーザー1件登録 -->
@@ -48,16 +64,58 @@
 			*
 		from
 			m_user
+			<!-- 部署IDを鍵とし、ユーザーマスタと部署マスタを左外部結合 -->
+			left join m_department
+				on m_user.department_id = m_department.department_id
+			<where>
+				<if test="userId != null">
+					user_id like '%' || #{userId} || '%'
+				</if>
+				<if test="userName != null">
+					and user_name like '%' || #{userName} || '%'
+				</if>
+			</where>
 	</select>
 
 	<!-- ユーザー一件検索 -->
+	<!-- resultMapを使うので、resultMap属性が付いている。resultMapはselectの結果をJavaクラスとマッピングするためのタグ。このxml内に、属性userのresultMapが定義されているので(9行目)、それを使う為に、属性値はuserとなっている。 -->
 	<select id="findOne" resultMap="user">
-		select
-			*
-		from
+		SELECT
+			m_user.user_id
+			, m_user.password
+			, m_user.user_name
+			, m_user.birthday
+			, m_user.age
+			, m_user.gender
+			, m_department.department_id
+			, m_department.department_name
+			, t_salary.user_id as salary_user_id
+			, t_salary.year_month as salary_year_month
+			, t_salary.salary as salary_salary
+		FROM
+			m_user
+			LEFT JOIN m_department ON m_user.department_id = m_department.department_id
+			LEFT JOIN t_salary ON m_user.user_id = t_salary.user_id
+			WHERE m_user.user_id = #{userId}
+	</select>
+
+	<!-- ユーザー1件更新 -->
+	<update id="updateOne">
+		update
+			m_user
+		set
+			password = #{password}
+		    , user_name = #{userName}
+		where
+			user_id = #{userId}
+	</update>
+
+	<!-- ユーザー1件削除 -->
+	<delete id="deleteOne">
+		delete from
 			m_user
 		where
 			user_id = #{userId}
-	</select>
+	</delete>
 
 </mapper>
